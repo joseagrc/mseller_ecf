@@ -36,3 +36,7 @@ fixtures = [
 ]
 
 after_install = "mseller_ecf.mseller_ecf.install.after_install"
+
+doctype_js = {
+    "Sales Invoice": "public/js/sales_invoice.js",
+}

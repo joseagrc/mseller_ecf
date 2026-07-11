@@ -1,12 +1,13 @@
 {
   "actions": [],
   "allow_rename": 0,
-  "autoname": "format:MSL-ECF-.YYYY.-.#####",
+  "autoname": "naming_series:",
   "creation": "2026-07-10 00:00:00.000000",
   "doctype": "DocType",
   "editable_grid": 1,
   "engine": "InnoDB",
   "field_order": [
+    "naming_series",
     "sales_invoice",
     "environment",
     "ecf",
@@ -30,6 +31,15 @@
     "last_error"
   ],
   "fields": [
+    {
+      "default": "MSL-ECF-.YYYY.-.#####",
+      "fieldname": "naming_series",
+      "fieldtype": "Select",
+      "hidden": 1,
+      "label": "Series",
+      "options": "MSL-ECF-.YYYY.-.#####",
+      "reqd": 1
+    },
     {
       "fieldname": "sales_invoice",
       "fieldtype": "Link",

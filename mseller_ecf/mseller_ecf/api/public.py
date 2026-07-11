@@ -22,4 +22,14 @@ def enqueue_sales_invoice(invoice_name: str):
         enqueue_after_commit=True,
         invoice_name=invoice_name,
     )
+    frappe.db.set_value(
+        "Sales Invoice",
+        invoice_name,
+        {
+            "mseller_ecf_status": "Queued",
+            "mseller_ecf_last_error": "",
+            "mseller_ecf_last_sync": frappe.utils.now_datetime(),
+        },
+        update_modified=False,
+    )
     return {"queued": True}

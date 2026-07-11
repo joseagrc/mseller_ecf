@@ -94,10 +94,18 @@ def create_sales_invoice_custom_fields():
                 "allow_on_submit": 1,
             },
             {
+                "fieldname": "mseller_ecf_last_error",
+                "label": "Last e-CF Error",
+                "fieldtype": "Small Text",
+                "insert_after": "mseller_ecf_last_sync",
+                "read_only": 1,
+                "allow_on_submit": 1,
+            },
+            {
                 "fieldname": "mseller_ecf_include_pagination",
                 "label": "Include DGII Pagination",
                 "fieldtype": "Check",
-                "insert_after": "mseller_ecf_last_sync",
+                "insert_after": "mseller_ecf_last_error",
                 "allow_on_submit": 1,
             },
             {

@@ -35,7 +35,14 @@ def send_sales_invoice(invoice_name: str):
         doc.last_error = str(exc)
         doc.retry_count = (doc.retry_count or 0) + 1
         doc.save(ignore_permissions=True)
-        _update_invoice(invoice_name, {"mseller_ecf_status": "Error"})
+        _update_invoice(
+            invoice_name,
+            {
+                "mseller_ecf_status": "Error",
+                "mseller_ecf_last_error": str(exc),
+                "mseller_ecf_last_sync": frappe.utils.now_datetime(),
+            },
+        )
         frappe.log_error(frappe.get_traceback(), "MSeller ECF send failed")
         raise
 
@@ -58,6 +65,7 @@ def _update_invoice_from_document(invoice_name: str, doc):
             "mseller_ecf_signed_date": doc.signed_date,
             "mseller_ecf_qr_url": doc.qr_url,
             "mseller_ecf_last_sync": frappe.utils.now_datetime(),
+            "mseller_ecf_last_error": doc.last_error,
         },
     )
 

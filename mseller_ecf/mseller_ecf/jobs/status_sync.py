@@ -84,6 +84,7 @@ def _update_invoice_from_document(doc):
             "mseller_ecf_signed_date": doc.signed_date,
             "mseller_ecf_qr_url": doc.qr_url,
             "mseller_ecf_last_sync": frappe.utils.now_datetime(),
+            "mseller_ecf_last_error": doc.last_error,
         },
         update_modified=False,
     )
