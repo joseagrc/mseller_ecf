@@ -1,0 +1,239 @@
+{
+  "actions": [],
+  "allow_rename": 0,
+  "creation": "2026-07-10 00:00:00.000000",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "enabled",
+    "environment",
+    "company",
+    "auto_send_on_submit",
+    "require_ecf_fields_on_submit",
+    "authentication_section",
+    "email",
+    "password",
+    "api_key",
+    "token_column_break",
+    "access_token",
+    "id_token",
+    "refresh_token",
+    "issuer_section",
+    "rnc_emisor",
+    "issuer_legal_name",
+    "issuer_address",
+    "sequence_expiry_date",
+    "defaults_section",
+    "default_income_type",
+    "default_cash_payment_type",
+    "default_credit_payment_type",
+    "default_taxable_amount_indicator",
+    "default_deferred_submission_indicator",
+    "defaults_column_break",
+    "default_unit_code",
+    "default_billing_indicator",
+    "default_goods_service_indicator",
+    "include_pagination",
+    "uom_section",
+    "uom_mappings"
+  ],
+  "fields": [
+    {
+      "default": "0",
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enabled"
+    },
+    {
+      "default": "TesteCF",
+      "fieldname": "environment",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Environment",
+      "options": "TesteCF\nCerteCF\neCF",
+      "reqd": 1
+    },
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company"
+    },
+    {
+      "default": "1",
+      "fieldname": "auto_send_on_submit",
+      "fieldtype": "Check",
+      "label": "Auto Send on Sales Invoice Submit"
+    },
+    {
+      "default": "1",
+      "fieldname": "require_ecf_fields_on_submit",
+      "fieldtype": "Check",
+      "label": "Require e-CF Fields on Submit"
+    },
+    {
+      "fieldname": "authentication_section",
+      "fieldtype": "Section Break",
+      "label": "Authentication"
+    },
+    {
+      "fieldname": "email",
+      "fieldtype": "Data",
+      "label": "Email"
+    },
+    {
+      "fieldname": "password",
+      "fieldtype": "Password",
+      "label": "Password"
+    },
+    {
+      "fieldname": "api_key",
+      "fieldtype": "Password",
+      "label": "API Key"
+    },
+    {
+      "fieldname": "token_column_break",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "access_token",
+      "fieldtype": "Password",
+      "label": "Access Token",
+      "read_only": 1
+    },
+    {
+      "fieldname": "id_token",
+      "fieldtype": "Password",
+      "label": "ID Token",
+      "read_only": 1
+    },
+    {
+      "fieldname": "refresh_token",
+      "fieldtype": "Password",
+      "label": "Refresh Token",
+      "read_only": 1
+    },
+    {
+      "fieldname": "issuer_section",
+      "fieldtype": "Section Break",
+      "label": "Issuer"
+    },
+    {
+      "fieldname": "rnc_emisor",
+      "fieldtype": "Data",
+      "label": "Issuer RNC"
+    },
+    {
+      "fieldname": "issuer_legal_name",
+      "fieldtype": "Data",
+      "label": "Issuer Legal Name"
+    },
+    {
+      "fieldname": "issuer_address",
+      "fieldtype": "Small Text",
+      "label": "Issuer Address"
+    },
+    {
+      "fieldname": "sequence_expiry_date",
+      "fieldtype": "Date",
+      "label": "Default Sequence Expiry Date"
+    },
+    {
+      "fieldname": "defaults_section",
+      "fieldtype": "Section Break",
+      "label": "Fiscal Defaults"
+    },
+    {
+      "default": "05",
+      "fieldname": "default_income_type",
+      "fieldtype": "Data",
+      "label": "Default Income Type"
+    },
+    {
+      "default": "1",
+      "fieldname": "default_cash_payment_type",
+      "fieldtype": "Data",
+      "label": "Default Cash Payment Type"
+    },
+    {
+      "default": "2",
+      "fieldname": "default_credit_payment_type",
+      "fieldtype": "Data",
+      "label": "Default Credit Payment Type"
+    },
+    {
+      "default": "0",
+      "fieldname": "default_taxable_amount_indicator",
+      "fieldtype": "Data",
+      "label": "Default Taxable Amount Indicator"
+    },
+    {
+      "fieldname": "default_deferred_submission_indicator",
+      "fieldtype": "Data",
+      "label": "Default Deferred Submission Indicator"
+    },
+    {
+      "fieldname": "defaults_column_break",
+      "fieldtype": "Column Break"
+    },
+    {
+      "default": "43",
+      "fieldname": "default_unit_code",
+      "fieldtype": "Data",
+      "label": "Default Unit Code"
+    },
+    {
+      "default": "1",
+      "fieldname": "default_billing_indicator",
+      "fieldtype": "Data",
+      "label": "Default Billing Indicator"
+    },
+    {
+      "default": "1",
+      "fieldname": "default_goods_service_indicator",
+      "fieldtype": "Data",
+      "label": "Default Goods/Service Indicator"
+    },
+    {
+      "default": "0",
+      "fieldname": "include_pagination",
+      "fieldtype": "Check",
+      "label": "Include DGII Pagination"
+    },
+    {
+      "fieldname": "uom_section",
+      "fieldtype": "Section Break",
+      "label": "UOM Mapping"
+    },
+    {
+      "fieldname": "uom_mappings",
+      "fieldtype": "Table",
+      "label": "UOM Mappings",
+      "options": "MSeller ECF UOM Mapping"
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "issingle": 1,
+  "links": [],
+  "modified": "2026-07-10 00:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "MSeller ECF",
+  "name": "MSeller ECF Settings",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

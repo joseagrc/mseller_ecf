@@ -1,0 +1,209 @@
+{
+  "actions": [],
+  "allow_rename": 0,
+  "autoname": "format:MSL-ECF-.YYYY.-.#####",
+  "creation": "2026-07-10 00:00:00.000000",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "sales_invoice",
+    "environment",
+    "ecf",
+    "status",
+    "retry_count",
+    "tracking_section",
+    "internal_track_id",
+    "security_code",
+    "signed_date",
+    "customer_id",
+    "document_type",
+    "qr_url",
+    "payload_section",
+    "request_payload",
+    "response_payload",
+    "status_payload",
+    "dgii_response",
+    "customer_response",
+    "signed_xml",
+    "error_section",
+    "last_error"
+  ],
+  "fields": [
+    {
+      "fieldname": "sales_invoice",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Sales Invoice",
+      "options": "Sales Invoice",
+      "reqd": 1
+    },
+    {
+      "fieldname": "environment",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Environment",
+      "options": "TesteCF\nCerteCF\neCF",
+      "reqd": 1
+    },
+    {
+      "fieldname": "ecf",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "e-CF",
+      "reqd": 1
+    },
+    {
+      "default": "Pending",
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Status",
+      "options": "Pending\nQueued\nSent\nAceptado\nAceptado Condicional\nRechazado\nError\nCancelled"
+    },
+    {
+      "default": "0",
+      "fieldname": "retry_count",
+      "fieldtype": "Int",
+      "label": "Retry Count",
+      "read_only": 1
+    },
+    {
+      "fieldname": "tracking_section",
+      "fieldtype": "Section Break",
+      "label": "Tracking"
+    },
+    {
+      "fieldname": "internal_track_id",
+      "fieldtype": "Data",
+      "label": "Internal Track ID",
+      "read_only": 1
+    },
+    {
+      "fieldname": "security_code",
+      "fieldtype": "Data",
+      "label": "Security Code",
+      "read_only": 1
+    },
+    {
+      "fieldname": "signed_date",
+      "fieldtype": "Data",
+      "label": "Signed Date",
+      "read_only": 1
+    },
+    {
+      "fieldname": "customer_id",
+      "fieldtype": "Data",
+      "label": "Customer ID",
+      "read_only": 1
+    },
+    {
+      "fieldname": "document_type",
+      "fieldtype": "Data",
+      "label": "Document Type",
+      "read_only": 1
+    },
+    {
+      "fieldname": "qr_url",
+      "fieldtype": "Small Text",
+      "label": "QR URL",
+      "read_only": 1
+    },
+    {
+      "fieldname": "payload_section",
+      "fieldtype": "Section Break",
+      "label": "Payloads"
+    },
+    {
+      "fieldname": "request_payload",
+      "fieldtype": "Code",
+      "label": "Request Payload",
+      "options": "JSON",
+      "read_only": 1
+    },
+    {
+      "fieldname": "response_payload",
+      "fieldtype": "Code",
+      "label": "Response Payload",
+      "options": "JSON",
+      "read_only": 1
+    },
+    {
+      "fieldname": "status_payload",
+      "fieldtype": "Code",
+      "label": "Status Payload",
+      "options": "JSON",
+      "read_only": 1
+    },
+    {
+      "fieldname": "dgii_response",
+      "fieldtype": "Code",
+      "label": "DGII Response",
+      "options": "JSON",
+      "read_only": 1
+    },
+    {
+      "fieldname": "customer_response",
+      "fieldtype": "Code",
+      "label": "Customer Response",
+      "options": "JSON",
+      "read_only": 1
+    },
+    {
+      "fieldname": "signed_xml",
+      "fieldtype": "Code",
+      "label": "Signed XML",
+      "options": "XML",
+      "read_only": 1
+    },
+    {
+      "fieldname": "error_section",
+      "fieldtype": "Section Break",
+      "label": "Errors"
+    },
+    {
+      "fieldname": "last_error",
+      "fieldtype": "Small Text",
+      "label": "Last Error",
+      "read_only": 1
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2026-07-10 00:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "MSeller ECF",
+  "name": "MSeller ECF Document",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 0,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 0,
+      "delete": 0,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Accounts Manager",
+      "share": 0,
+      "write": 0
+    }
+  ],
+  "search_fields": "sales_invoice,ecf,status,internal_track_id",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "title_field": "ecf"
+}

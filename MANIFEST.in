@@ -1,0 +1,4 @@
+recursive-include mseller_ecf *.json
+recursive-include mseller_ecf *.js
+recursive-include mseller_ecf *.py
+recursive-include mseller_ecf *.txt

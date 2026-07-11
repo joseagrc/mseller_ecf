@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mseller_ecf"
+authors = [{ name = "MSeller ECF Integration", email = "support@example.com" }]
+description = "Frappe/ERPNext integration for MSeller e-CF electronic invoicing"
+readme = "README.md"
+requires-python = ">=3.10"
+version = "0.1.0"
+dependencies = [
+    "requests>=2.31.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.urls]
+Documentation = "https://docs.ecf.mseller.app/"
+
+[tool.bench.dev-dependencies]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B904"]
