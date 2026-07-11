@@ -36,6 +36,7 @@ fixtures = [
 ]
 
 after_install = "mseller_ecf.mseller_ecf.install.after_install"
+after_migrate = "mseller_ecf.mseller_ecf.install.create_sales_invoice_custom_fields"
 
 doctype_js = {
     "Sales Invoice": "public/js/sales_invoice.js",

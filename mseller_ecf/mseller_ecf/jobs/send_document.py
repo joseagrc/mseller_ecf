@@ -44,6 +44,7 @@ def send_sales_invoice(invoice_name: str):
             },
         )
         frappe.log_error(frappe.get_traceback(), "MSeller ECF send failed")
+        frappe.db.commit()
         raise
 
     doc.apply_send_response(response)
