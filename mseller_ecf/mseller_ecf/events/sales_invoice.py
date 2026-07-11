@@ -1,6 +1,12 @@
 import frappe
 from frappe import _
 
+from mseller_ecf.mseller_ecf.sequence import assign_ecf_if_missing
+
+
+def before_submit(doc, method=None):
+    assign_ecf_if_missing(doc)
+
 
 def on_submit(doc, method=None):
     settings = frappe.get_single("MSeller ECF Settings")

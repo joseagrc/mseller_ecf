@@ -41,9 +41,18 @@ def create_sales_invoice_custom_fields():
                 "allow_on_submit": 1,
             },
             {
+                "fieldname": "mseller_ecf_sequence",
+                "label": "e-NCF Sequence",
+                "fieldtype": "Link",
+                "insert_after": "mseller_ecf_status",
+                "options": "MSeller ECF Sequence",
+                "read_only": 1,
+                "allow_on_submit": 1,
+            },
+            {
                 "fieldname": "mseller_ecf_col_break",
                 "fieldtype": "Column Break",
-                "insert_after": "mseller_ecf_status",
+                "insert_after": "mseller_ecf_sequence",
             },
             {
                 "fieldname": "mseller_ecf_environment",

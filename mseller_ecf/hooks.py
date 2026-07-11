@@ -8,6 +8,7 @@ required_apps = ["erpnext"]
 
 doc_events = {
     "Sales Invoice": {
+        "before_submit": "mseller_ecf.mseller_ecf.events.sales_invoice.before_submit",
         "on_submit": "mseller_ecf.mseller_ecf.events.sales_invoice.on_submit",
         "on_cancel": "mseller_ecf.mseller_ecf.events.sales_invoice.on_cancel",
     }
