@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import frappe
+from frappe import _
 
 from mseller_ecf.mseller_ecf.api.client import MSellerECFClient
 from mseller_ecf.mseller_ecf.api.exceptions import MSellerECFError
@@ -55,7 +56,7 @@ def sync_pending_documents(limit: int = 100):
 @frappe.whitelist()
 def sync_document(document_name: str):
     if not frappe.has_permission("MSeller ECF Document", "write", doc=document_name):
-        frappe.throw("Not permitted", frappe.PermissionError)
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
 
     doc = frappe.get_doc("MSeller ECF Document", document_name)
     response = MSellerECFClient().get_document(doc.ecf)

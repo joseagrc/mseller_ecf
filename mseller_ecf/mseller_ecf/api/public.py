@@ -1,19 +1,21 @@
 import frappe
+from frappe import _
 
 from mseller_ecf.mseller_ecf.mapper.sales_invoice import build_sales_invoice_payload
+from mseller_ecf.mseller_ecf.jobs.status_sync import sync_document
 
 
 @frappe.whitelist()
 def preview_sales_invoice_payload(invoice_name: str):
     if not frappe.has_permission("Sales Invoice", "read", doc=invoice_name):
-        frappe.throw("Not permitted", frappe.PermissionError)
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
     return build_sales_invoice_payload(invoice_name)
 
 
 @frappe.whitelist()
 def enqueue_sales_invoice(invoice_name: str):
     if not frappe.has_permission("Sales Invoice", "write", doc=invoice_name):
-        frappe.throw("Not permitted", frappe.PermissionError)
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
 
     frappe.enqueue(
         "mseller_ecf.mseller_ecf.jobs.send_document.send_sales_invoice",
@@ -33,3 +35,15 @@ def enqueue_sales_invoice(invoice_name: str):
         update_modified=False,
     )
     return {"queued": True}
+
+
+@frappe.whitelist()
+def sync_sales_invoice_status(invoice_name: str):
+    if not frappe.has_permission("Sales Invoice", "read", doc=invoice_name):
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+    document_name = frappe.db.get_value("MSeller ECF Document", {"sales_invoice": invoice_name})
+    if not document_name:
+        frappe.throw(_("No MSeller ECF Document found for this Sales Invoice."))
+
+    return sync_document(document_name)

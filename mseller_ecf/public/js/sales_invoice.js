@@ -20,5 +20,16 @@ frappe.ui.form.on("Sales Invoice", {
         sales_invoice: frm.doc.name,
       });
     }, __("MSeller ECF"));
+
+    frm.add_custom_button(__("Sync e-CF Status"), () => {
+      frappe.call({
+        method: "mseller_ecf.mseller_ecf.api.public.sync_sales_invoice_status",
+        args: { invoice_name: frm.doc.name },
+        freeze: true,
+        callback() {
+          frm.reload_doc();
+        },
+      });
+    }, __("MSeller ECF"));
   },
 });

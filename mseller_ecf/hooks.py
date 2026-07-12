@@ -16,7 +16,7 @@ doc_events = {
 
 scheduler_events = {
     "cron": {
-        "*/15 * * * *": [
+        "*/5 * * * *": [
             "mseller_ecf.mseller_ecf.jobs.status_sync.sync_pending_documents",
         ],
     },
