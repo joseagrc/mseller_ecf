@@ -139,6 +139,7 @@
 "Only submitted Purchase Invoices can be sent to MSeller ECF.","Solo las facturas de proveedor sometidas pueden enviarse a MSeller ECF."
 "Purchase Invoice e-CF Type must be 41, 43, or 47.","El tipo e-CF de la factura de proveedor debe ser 41, 43 o 47."
 "Purchase Invoice must have at least one item for MSeller ECF.","La factura de proveedor debe tener al menos un artículo para MSeller ECF."
+"Exchange Rate must be greater than zero for e-CF Type 47.","La tasa de cambio debe ser mayor que cero para el tipo e-CF 47."
 "Supplier Tax ID","RNC/Cédula del proveedor"
 "Company RNC","RNC de la compañía"
 "Customer Name","Nombre del cliente"

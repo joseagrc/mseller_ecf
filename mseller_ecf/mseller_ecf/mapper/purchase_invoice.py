@@ -59,6 +59,8 @@ class PurchaseInvoiceECFMapper:
 
         if self.invoice.mseller_ecf_type == "47":
             require_value(self.foreign_identifier(), _("Foreign Identifier"))
+            if self.conversion_rate() <= 0:
+                frappe.throw(_("Exchange Rate must be greater than zero for e-CF Type 47."))
         elif self.invoice.mseller_ecf_type == "41":
             require_value(self.supplier_tax_id(), _("Supplier Tax ID"))
 
@@ -117,49 +119,71 @@ class PurchaseInvoiceECFMapper:
             row = {
                 "NumeroLinea": str(idx),
                 "IndicadorFacturacion": self.item_billing_indicator(item),
-                "NombreItem": item.item_name or item.item_code,
-                "IndicadorBienoServicio": self.goods_or_service_indicator(item),
-                "CantidadItem": money(item.qty),
-                "UnidadMedida": item.get("uom") and self.unit_code(item.uom),
-                "PrecioUnitarioItem": money(item.rate),
-                "MontoItem": money(item.net_amount or item.amount),
             }
 
             retention = self.item_retention(item)
             if retention:
                 row["Retencion"] = retention
 
+            row.update(
+                {
+                    "NombreItem": item.item_name or item.item_code,
+                    "IndicadorBienoServicio": self.goods_or_service_indicator(item),
+                    "CantidadItem": money(item.qty),
+                    "UnidadMedida": item.get("uom") and self.unit_code(item.uom),
+                    "PrecioUnitarioItem": money(self.item_base_rate(item)),
+                }
+            )
+
             if self.invoice.mseller_ecf_type == "47":
                 row["OtraMonedaDetalle"] = {
-                    "PrecioOtraMoneda": money(item.rate / self.conversion_rate()),
-                    "MontoItemOtraMoneda": money((item.net_amount or item.amount) / self.conversion_rate()),
+                    "PrecioOtraMoneda": money(item.rate),
+                    "MontoItemOtraMoneda": money(item.net_amount or item.amount),
                 }
 
+            row["MontoItem"] = money(self.item_base_amount(item))
             rows.append({key: value for key, value in row.items() if value not in (None, "")})
         return rows
 
     def totales(self) -> dict:
+        if self.invoice.mseller_ecf_type == "43":
+            return {
+                "MontoExento": money(self.invoice_base_grand_total()),
+                "MontoTotal": money(self.invoice_base_grand_total()),
+            }
+
+        if self.invoice.mseller_ecf_type == "47":
+            totals = {
+                "MontoExento": money(self.invoice_base_grand_total()),
+                "MontoTotal": money(self.invoice_base_grand_total()),
+            }
+            isr_withheld = self.total_isr_withheld()
+            if isr_withheld:
+                totals["TotalISRRetencion"] = money(isr_withheld)
+            return totals
+
         exempt_total = self.exempt_total()
-        taxable_total = money(self.invoice.net_total - exempt_total)
-        totals = {
-            "MontoExento": money(exempt_total),
-            "MontoTotal": money(self.invoice.grand_total),
-        }
+        taxable_total = money(self.invoice_base_net_total() - exempt_total)
+        totals = {}
 
         if taxable_total:
             tax_rate = self.primary_itbis_rate()
             amount_field, rate_field, tax_field = ITBIS_RATE_TO_FIELD.get(tax_rate, ITBIS_RATE_TO_FIELD[18])
             totals["MontoGravadoTotal"] = taxable_total
             totals[amount_field] = taxable_total
+            if exempt_total:
+                totals["MontoExento"] = money(exempt_total)
             totals[rate_field] = tax_rate
-            totals["TotalITBIS"] = money(self.invoice.total_taxes_and_charges)
-            totals[tax_field] = money(self.invoice.total_taxes_and_charges)
+            totals["TotalITBIS"] = money(self.invoice_base_tax_total())
+            totals[tax_field] = money(self.invoice_base_tax_total())
+        else:
+            totals["MontoExento"] = money(exempt_total or self.invoice_base_grand_total())
 
         itbis_withheld = self.total_itbis_withheld()
         isr_withheld = self.total_isr_withheld()
-        if self.invoice.mseller_ecf_type in {"41", "47"}:
-            totals["TotalITBISRetenido"] = money(itbis_withheld)
-            totals["TotalISRRetencion"] = money(isr_withheld)
+        totals["MontoTotal"] = money(self.invoice_base_grand_total())
+        totals["TotalITBISRetenido"] = money(itbis_withheld)
+        totals["TotalISRRetencion"] = money(isr_withheld)
 
         return {key: value for key, value in totals.items() if value not in (None, "")}
 
@@ -168,8 +192,8 @@ class PurchaseInvoiceECFMapper:
         return {
             "TipoMoneda": self.invoice.currency,
             "TipoCambio": money(conversion_rate),
-            "MontoExentoOtraMoneda": money(self.exempt_total() / conversion_rate),
-            "MontoTotalOtraMoneda": money(self.invoice.grand_total / conversion_rate),
+            "MontoExentoOtraMoneda": money(self.exempt_total(base_currency=False)),
+            "MontoTotalOtraMoneda": money(self.invoice.grand_total),
         }
 
     def subtotales(self) -> dict:
@@ -179,8 +203,8 @@ class PurchaseInvoiceECFMapper:
                     "NumeroSubTotal": "1",
                     "DescripcionSubtotal": "N/A",
                     "Orden": 1,
-                    "SubTotalExento": money(self.exempt_total()),
-                    "MontoSubTotal": money(self.invoice.grand_total),
+                    "SubTotalExento": money(self.invoice_base_grand_total()),
+                    "MontoSubTotal": money(self.invoice_base_grand_total()),
                     "Lineas": len(self.invoice.items),
                 }
             ]
@@ -226,6 +250,12 @@ class PurchaseInvoiceECFMapper:
     def item_retention(self, item) -> dict | None:
         itbis = money(item.get("mseller_ecf_itbis_withheld") or 0)
         isr = money(item.get("mseller_ecf_isr_withheld") or 0)
+        if self.invoice.mseller_ecf_type == "47":
+            return {
+                "IndicadorAgenteRetencionoPercepcion": "1",
+                "MontoISRRetenido": money(isr),
+            }
+
         if not itbis and not isr and self.invoice.mseller_ecf_type != "41":
             return None
 
@@ -236,9 +266,11 @@ class PurchaseInvoiceECFMapper:
             data["MontoISRRetenido"] = isr
         return data
 
-    def exempt_total(self) -> float:
+    def exempt_total(self, base_currency: bool = True) -> float:
         return sum(
-            money(item.net_amount or item.amount) for item in self.invoice.items if self.item_billing_indicator(item) == "4"
+            money(self.item_base_amount(item) if base_currency else item.net_amount or item.amount)
+            for item in self.invoice.items
+            if self.item_billing_indicator(item) == "4"
         )
 
     def primary_itbis_rate(self) -> int:
@@ -255,3 +287,18 @@ class PurchaseInvoiceECFMapper:
 
     def conversion_rate(self) -> float:
         return float(self.invoice.get("conversion_rate") or 1)
+
+    def invoice_base_net_total(self) -> float:
+        return float(self.invoice.get("base_net_total") or self.invoice.net_total or 0)
+
+    def invoice_base_grand_total(self) -> float:
+        return float(self.invoice.get("base_grand_total") or self.invoice.grand_total or 0)
+
+    def invoice_base_tax_total(self) -> float:
+        return float(self.invoice.get("base_total_taxes_and_charges") or self.invoice.total_taxes_and_charges or 0)
+
+    def item_base_amount(self, item) -> float:
+        return float(item.get("base_net_amount") or item.get("base_amount") or item.net_amount or item.amount or 0)
+
+    def item_base_rate(self, item) -> float:
+        return float(item.get("base_rate") or (item.rate or 0) * self.conversion_rate())
