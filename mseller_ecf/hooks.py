@@ -47,6 +47,11 @@ fixtures = [
 after_install = "mseller_ecf.mseller_ecf.install.after_install"
 after_migrate = "mseller_ecf.mseller_ecf.install.create_custom_fields_for_integration"
 
+override_doctype_dashboards = {
+    "Sales Invoice": ["mseller_ecf.mseller_ecf.dashboard.sales_invoice.get_data"],
+    "Purchase Invoice": ["mseller_ecf.mseller_ecf.dashboard.purchase_invoice.get_data"],
+}
+
 doctype_js = {
     "Sales Invoice": "public/js/sales_invoice.js",
     "Purchase Invoice": "public/js/purchase_invoice.js",
