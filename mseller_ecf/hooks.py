@@ -23,6 +23,9 @@ scheduler_events = {
     "daily": [
         "mseller_ecf.mseller_ecf.jobs.status_sync.cleanup_expired_tokens",
     ],
+    "hourly": [
+        "mseller_ecf.mseller_ecf.jobs.sequence_sync.refresh_all_sequence_statuses",
+    ],
 }
 
 fixtures = [

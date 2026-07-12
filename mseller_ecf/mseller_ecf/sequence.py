@@ -4,7 +4,11 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, nowdate
 
-from mseller_ecf.mseller_ecf.doctype.mseller_ecf_sequence.mseller_ecf_sequence import format_ecf, parse_ecf
+from mseller_ecf.mseller_ecf.doctype.mseller_ecf_sequence.mseller_ecf_sequence import (
+    format_ecf,
+    get_sequence_status,
+    parse_ecf,
+)
 
 
 def assign_ecf_if_missing(invoice):
@@ -40,18 +44,25 @@ def assign_ecf_if_missing(invoice):
 
 
 def get_active_sequence_name(company: str, environment: str, ecf_type: str) -> str | None:
-    return frappe.db.get_value(
-        "MSeller ECF Sequence",
-        {
-            "company": company,
-            "environment": environment,
-            "ecf_type": ecf_type,
-            "status": "Active",
-            "auto_assign": 1,
-        },
-        "name",
-        order_by="expires_on asc, creation asc",
+    rows = frappe.db.sql(
+        """
+        select name
+        from `tabMSeller ECF Sequence`
+        where
+            company = %s
+            and environment = %s
+            and ecf_type = %s
+            and status = 'Active'
+            and auto_assign = 1
+            and coalesce(next_number, start_number) <= end_number
+            and (expires_on is null or expires_on >= %s)
+        order by expires_on is null, expires_on asc, creation asc
+        limit 1
+        """,
+        (company, environment, ecf_type, nowdate()),
+        as_dict=True,
     )
+    return rows[0].name if rows else None
 
 
 def consume_sequence(sequence_name: str, invoice_name: str) -> tuple[str, str | None]:
@@ -84,7 +95,7 @@ def consume_sequence(sequence_name: str, invoice_name: str) -> tuple[str, str | 
 
     ecf = format_ecf(sequence.prefix, next_number, sequence.padding_length)
     new_next_number = next_number + 1
-    status = "Exhausted" if new_next_number > sequence.end_number else "Active"
+    status = get_sequence_status("Active", new_next_number, sequence.end_number, sequence.expires_on)
     used_quantity = max(0, new_next_number - sequence.start_number)
     remaining_quantity = max(0, sequence.end_number - new_next_number + 1)
 
@@ -161,7 +172,7 @@ def sync_existing_ecf(invoice, environment: str):
         return
 
     new_next_number = number + 1
-    status = "Exhausted" if new_next_number > sequence.end_number else "Active"
+    status = get_sequence_status("Active", new_next_number, sequence.end_number, sequence.expires_on)
     used_quantity = max(0, new_next_number - sequence.start_number)
     remaining_quantity = max(0, sequence.end_number - new_next_number + 1)
 

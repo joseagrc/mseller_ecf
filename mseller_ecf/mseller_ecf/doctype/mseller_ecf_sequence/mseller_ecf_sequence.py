@@ -5,9 +5,11 @@ import re
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import getdate, nowdate
 
 
 ECF_RE = re.compile(r"^(E\d{2})(\d+)$")
+AUTO_MANAGED_STATUSES = {"Active", "Expired", "Exhausted"}
 
 
 class MSellerECFSequence(Document):
@@ -46,11 +48,12 @@ class MSellerECFSequence(Document):
 
         self.used_quantity = max(0, min(self.next_number - start_number, self.authorized_quantity))
         self.remaining_quantity = max(0, end_number - self.next_number + 1)
-
-        if self.next_number > end_number:
-            self.status = "Exhausted"
-        elif self.status == "Exhausted":
-            self.status = "Active"
+        self.status = get_sequence_status(
+            status=self.status,
+            next_number=self.next_number,
+            end_number=self.end_number,
+            expires_on=self.expires_on,
+        )
 
     def _validate_unique_active_sequence(self):
         if self.status != "Active":
@@ -72,8 +75,12 @@ class MSellerECFSequence(Document):
             )
 
     def before_save(self):
-        if self.next_number and self.end_number and self.next_number > self.end_number:
-            self.status = "Exhausted"
+        self.status = get_sequence_status(
+            status=self.status,
+            next_number=self.next_number,
+            end_number=self.end_number,
+            expires_on=self.expires_on,
+        )
 
 
 def parse_ecf(ecf: str | None) -> tuple[str, int, int]:
@@ -90,3 +97,22 @@ def parse_ecf(ecf: str | None) -> tuple[str, int, int]:
 
 def format_ecf(prefix: str, number: int, padding_length: int) -> str:
     return f"{prefix}{number:0{padding_length}d}"
+
+
+def get_sequence_status(status: str | None, next_number: int | None, end_number: int | None, expires_on: str | None) -> str:
+    if status == "Cancelled":
+        return "Cancelled"
+
+    if expires_on and getdate(expires_on) < getdate(nowdate()):
+        return "Expired"
+
+    if next_number and end_number and next_number > end_number:
+        return "Exhausted"
+
+    if status == "Paused":
+        return "Paused"
+
+    if status in AUTO_MANAGED_STATUSES:
+        return "Active"
+
+    return status or "Active"
