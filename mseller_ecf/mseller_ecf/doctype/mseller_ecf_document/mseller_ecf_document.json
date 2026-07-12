@@ -9,6 +9,7 @@
   "field_order": [
     "naming_series",
     "sales_invoice",
+    "purchase_invoice",
     "environment",
     "ecf",
     "status",
@@ -45,8 +46,14 @@
       "fieldtype": "Link",
       "in_list_view": 1,
       "label": "Sales Invoice",
-      "options": "Sales Invoice",
-      "reqd": 1
+      "options": "Sales Invoice"
+    },
+    {
+      "fieldname": "purchase_invoice",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Purchase Invoice",
+      "options": "Purchase Invoice"
     },
     {
       "fieldname": "environment",
@@ -211,7 +218,7 @@
       "write": 0
     }
   ],
-  "search_fields": "sales_invoice,ecf,status,internal_track_id",
+  "search_fields": "sales_invoice,purchase_invoice,ecf,status,internal_track_id",
   "sort_field": "modified",
   "sort_order": "DESC",
   "states": [],

@@ -1,5 +1,5 @@
 frappe.listview_settings["MSeller ECF Document"] = {
-  add_fields: ["status", "sales_invoice", "ecf", "environment"],
+  add_fields: ["status", "sales_invoice", "purchase_invoice", "ecf", "environment"],
   get_indicator(doc) {
     const colorMap = {
       Aceptado: "green",

@@ -47,8 +47,7 @@ def sync_pending_documents(limit: int = 100):
         doc = frappe.get_doc("MSeller ECF Document", row.name)
         doc.apply_status_response(result.get("data") or result)
         doc.save(ignore_permissions=True)
-        if doc.sales_invoice:
-            _update_invoice_from_document(doc)
+        _update_invoice_from_document(doc)
 
     frappe.db.commit()
 
@@ -62,8 +61,7 @@ def sync_document(document_name: str):
     response = MSellerECFClient().get_document(doc.ecf)
     doc.apply_status_response(response)
     doc.save(ignore_permissions=True)
-    if doc.sales_invoice:
-        _update_invoice_from_document(doc)
+    _update_invoice_from_document(doc)
     frappe.db.commit()
     return response
 
@@ -75,9 +73,14 @@ def cleanup_expired_tokens():
 
 
 def _update_invoice_from_document(doc):
+    doctype = "Sales Invoice" if doc.sales_invoice else "Purchase Invoice" if doc.purchase_invoice else None
+    invoice_name = doc.sales_invoice or doc.purchase_invoice
+    if not doctype or not invoice_name:
+        return
+
     frappe.db.set_value(
-        "Sales Invoice",
-        doc.sales_invoice,
+        doctype,
+        invoice_name,
         {
             "mseller_ecf_status": doc.status,
             "mseller_ecf_internal_track_id": doc.internal_track_id,

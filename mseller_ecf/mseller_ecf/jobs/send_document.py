@@ -4,22 +4,32 @@ import frappe
 
 from mseller_ecf.mseller_ecf.api.client import MSellerECFClient
 from mseller_ecf.mseller_ecf.api.exceptions import MSellerECFError
+from mseller_ecf.mseller_ecf.mapper.purchase_invoice import build_purchase_invoice_payload
 from mseller_ecf.mseller_ecf.mapper.sales_invoice import build_sales_invoice_payload
 
 
 def send_sales_invoice(invoice_name: str):
-    existing_name = frappe.db.get_value("MSeller ECF Document", {"sales_invoice": invoice_name})
+    return _send_invoice("Sales Invoice", invoice_name, build_sales_invoice_payload)
+
+
+def send_purchase_invoice(invoice_name: str):
+    return _send_invoice("Purchase Invoice", invoice_name, build_purchase_invoice_payload)
+
+
+def _send_invoice(doctype: str, invoice_name: str, payload_builder):
+    link_field = "sales_invoice" if doctype == "Sales Invoice" else "purchase_invoice"
+    existing_name = frappe.db.get_value("MSeller ECF Document", {link_field: invoice_name})
     if existing_name:
         doc = frappe.get_doc("MSeller ECF Document", existing_name)
     else:
         doc = frappe.new_doc("MSeller ECF Document")
-        doc.sales_invoice = invoice_name
+        doc.set(link_field, invoice_name)
 
     if doc.status in {"Sent", "Aceptado", "Aceptado Condicional"} and doc.ecf:
         return doc.name
 
     settings = frappe.get_single("MSeller ECF Settings")
-    payload = build_sales_invoice_payload(invoice_name)
+    payload = payload_builder(invoice_name)
 
     doc.environment = settings.environment
     doc.ecf = payload["ECF"]["Encabezado"]["IdDoc"]["eNCF"]
@@ -36,6 +46,7 @@ def send_sales_invoice(invoice_name: str):
         doc.retry_count = (doc.retry_count or 0) + 1
         doc.save(ignore_permissions=True)
         _update_invoice(
+            doctype,
             invoice_name,
             {
                 "mseller_ecf_status": "Error",
@@ -49,14 +60,15 @@ def send_sales_invoice(invoice_name: str):
 
     doc.apply_send_response(response)
     doc.save(ignore_permissions=True)
-    _update_invoice_from_document(invoice_name, doc)
+    _update_invoice_from_document(doctype, invoice_name, doc)
     frappe.db.commit()
 
     return doc.name
 
 
-def _update_invoice_from_document(invoice_name: str, doc):
+def _update_invoice_from_document(doctype: str, invoice_name: str, doc):
     _update_invoice(
+        doctype,
         invoice_name,
         {
             "mseller_ecf_status": doc.status,
@@ -71,5 +83,5 @@ def _update_invoice_from_document(invoice_name: str, doc):
     )
 
 
-def _update_invoice(invoice_name: str, values: dict):
-    frappe.db.set_value("Sales Invoice", invoice_name, values, update_modified=False)
+def _update_invoice(doctype: str, invoice_name: str, values: dict):
+    frappe.db.set_value(doctype, invoice_name, values, update_modified=False)

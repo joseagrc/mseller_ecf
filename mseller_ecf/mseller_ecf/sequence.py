@@ -53,12 +53,21 @@ def assign_ecf_if_missing(invoice):
 
 
 def get_invoice_party_defaults(invoice) -> tuple[str | None, str | None]:
-    if not invoice.get("customer"):
+    party_doctype = None
+    party_name = None
+    if invoice.doctype == "Sales Invoice":
+        party_doctype = "Customer"
+        party_name = invoice.get("customer")
+    elif invoice.doctype == "Purchase Invoice":
+        party_doctype = "Supplier"
+        party_name = invoice.get("supplier")
+
+    if not party_doctype or not party_name:
         return None, None
 
     defaults = frappe.db.get_value(
-        "Customer",
-        invoice.customer,
+        party_doctype,
+        party_name,
         ["mseller_ecf_default_type", "mseller_ecf_default_sequence"],
         as_dict=True,
     )

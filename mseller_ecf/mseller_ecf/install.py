@@ -9,7 +9,7 @@ def after_install():
 def create_sales_invoice_custom_fields():
     fields = {
         "Customer": get_party_custom_fields(),
-        "Supplier": get_party_custom_fields(),
+        "Supplier": get_supplier_custom_fields(),
         "Sales Invoice": [
             {
                 "fieldname": "mseller_ecf_section",
@@ -165,6 +165,37 @@ def create_sales_invoice_custom_fields():
                 "allow_on_submit": 1,
             },
         ],
+        "Purchase Invoice": get_purchase_invoice_custom_fields(),
+        "Purchase Invoice Item": [
+            {
+                "fieldname": "mseller_ecf_billing_indicator",
+                "label": "e-CF Billing Indicator",
+                "fieldtype": "Data",
+                "insert_after": "item_tax_template",
+                "allow_on_submit": 1,
+            },
+            {
+                "fieldname": "mseller_ecf_goods_service_indicator",
+                "label": "e-CF Goods/Service Indicator",
+                "fieldtype": "Data",
+                "insert_after": "mseller_ecf_billing_indicator",
+                "allow_on_submit": 1,
+            },
+            {
+                "fieldname": "mseller_ecf_itbis_withheld",
+                "label": "e-CF ITBIS Withheld",
+                "fieldtype": "Currency",
+                "insert_after": "mseller_ecf_goods_service_indicator",
+                "allow_on_submit": 1,
+            },
+            {
+                "fieldname": "mseller_ecf_isr_withheld",
+                "label": "e-CF ISR Withheld",
+                "fieldtype": "Currency",
+                "insert_after": "mseller_ecf_itbis_withheld",
+                "allow_on_submit": 1,
+            },
+        ],
     }
 
     create_custom_fields(fields, update=True)
@@ -193,5 +224,171 @@ def get_party_custom_fields():
             "fieldtype": "Link",
             "insert_after": "mseller_ecf_default_type",
             "options": "MSeller ECF Sequence",
+        },
+    ]
+
+
+def get_supplier_custom_fields():
+    fields = get_party_custom_fields()
+    fields.append(
+        {
+            "fieldname": "mseller_ecf_foreign_identifier",
+            "label": "Foreign Identifier",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_default_sequence",
+        }
+    )
+    return fields
+
+
+def get_purchase_invoice_custom_fields():
+    return [
+        {
+            "fieldname": "mseller_ecf_section",
+            "label": "MSeller ECF",
+            "fieldtype": "Section Break",
+            "insert_after": "tax_id",
+            "collapsible": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_type",
+            "label": "e-CF Type",
+            "fieldtype": "Select",
+            "insert_after": "mseller_ecf_section",
+            "options": "\n41\n43\n47",
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_ncf",
+            "label": "e-NCF",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_type",
+            "unique": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_status",
+            "label": "e-CF Status",
+            "fieldtype": "Select",
+            "insert_after": "mseller_ecf_ncf",
+            "options": "\nPending\nQueued\nSent\nAceptado\nAceptado Condicional\nRechazado\nError\nCancelled",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_sequence",
+            "label": "e-NCF Sequence",
+            "fieldtype": "Link",
+            "insert_after": "mseller_ecf_status",
+            "options": "MSeller ECF Sequence",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_col_break",
+            "fieldtype": "Column Break",
+            "insert_after": "mseller_ecf_sequence",
+        },
+        {
+            "fieldname": "mseller_ecf_environment",
+            "label": "MSeller Environment",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_col_break",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_last_error",
+            "label": "Last e-CF Error",
+            "fieldtype": "Small Text",
+            "insert_after": "mseller_ecf_environment",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_internal_track_id",
+            "label": "Internal Track ID",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_last_error",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_security_code",
+            "label": "Security Code",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_internal_track_id",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_signed_date",
+            "label": "Signed Date",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_security_code",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_qr_url",
+            "label": "QR URL",
+            "fieldtype": "Small Text",
+            "insert_after": "mseller_ecf_signed_date",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_last_sync",
+            "label": "Last e-CF Sync",
+            "fieldtype": "Datetime",
+            "insert_after": "mseller_ecf_qr_url",
+            "read_only": 1,
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_advanced_section",
+            "label": "MSeller Advanced Fiscal Values",
+            "fieldtype": "Section Break",
+            "insert_after": "mseller_ecf_last_sync",
+            "collapsible": 1,
+            "collapsible_depends_on": "eval:doc.mseller_ecf_type",
+        },
+        {
+            "fieldname": "mseller_ecf_payment_type",
+            "label": "Payment Type",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_advanced_section",
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_sequence_expiry_date",
+            "label": "Sequence Expiry Date",
+            "fieldtype": "Date",
+            "insert_after": "mseller_ecf_payment_type",
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_foreign_identifier",
+            "label": "Foreign Identifier",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_sequence_expiry_date",
+            "depends_on": "eval:doc.mseller_ecf_type == '47'",
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_payment_account",
+            "label": "Payment Account Number",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_foreign_identifier",
+            "depends_on": "eval:doc.mseller_ecf_type == '47'",
+            "allow_on_submit": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_payment_bank",
+            "label": "Payment Bank",
+            "fieldtype": "Data",
+            "insert_after": "mseller_ecf_payment_account",
+            "depends_on": "eval:doc.mseller_ecf_type == '47'",
+            "allow_on_submit": 1,
         },
     ]

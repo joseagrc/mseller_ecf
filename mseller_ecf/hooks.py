@@ -11,7 +11,12 @@ doc_events = {
         "before_submit": "mseller_ecf.mseller_ecf.events.sales_invoice.before_submit",
         "on_submit": "mseller_ecf.mseller_ecf.events.sales_invoice.on_submit",
         "on_cancel": "mseller_ecf.mseller_ecf.events.sales_invoice.on_cancel",
-    }
+    },
+    "Purchase Invoice": {
+        "before_submit": "mseller_ecf.mseller_ecf.events.purchase_invoice.before_submit",
+        "on_submit": "mseller_ecf.mseller_ecf.events.purchase_invoice.on_submit",
+        "on_cancel": "mseller_ecf.mseller_ecf.events.purchase_invoice.on_cancel",
+    },
 }
 
 scheduler_events = {
@@ -44,4 +49,5 @@ after_migrate = "mseller_ecf.mseller_ecf.install.create_sales_invoice_custom_fie
 
 doctype_js = {
     "Sales Invoice": "public/js/sales_invoice.js",
+    "Purchase Invoice": "public/js/purchase_invoice.js",
 }
