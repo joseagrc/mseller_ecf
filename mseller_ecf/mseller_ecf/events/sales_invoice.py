@@ -34,6 +34,7 @@ def on_submit(doc, method=None):
         timeout=300,
         enqueue_after_commit=True,
         job_name=f"mseller_ecf:Sales Invoice:{doc.name}",
+        job_id=f"mseller_ecf:Sales Invoice:{doc.name}",
         deduplicate=True,
         invoice_name=doc.name,
     )

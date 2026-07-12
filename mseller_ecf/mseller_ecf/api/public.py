@@ -88,6 +88,7 @@ def _enqueue_invoice(doctype: str, invoice_name: str, link_field: str, method: s
         timeout=300,
         enqueue_after_commit=True,
         job_name=f"mseller_ecf:{doctype}:{invoice_name}",
+        job_id=f"mseller_ecf:{doctype}:{invoice_name}",
         deduplicate=True,
         invoice_name=invoice_name,
     )
