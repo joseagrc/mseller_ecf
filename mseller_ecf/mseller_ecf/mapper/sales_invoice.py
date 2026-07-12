@@ -42,7 +42,7 @@ class SalesInvoiceECFMapper:
             }
         }
 
-        if self.invoice.get("mseller_ecf_include_pagination") or self.settings.include_pagination:
+        if self.should_include_pagination():
             payload["ECF"]["Paginacion"] = self.pagination(payload)
 
         return payload
@@ -59,30 +59,42 @@ class SalesInvoiceECFMapper:
         if not self.invoice.items:
             frappe.throw(_("Sales Invoice must have at least one item for MSeller ECF."))
 
+        if self.invoice.mseller_ecf_type in {"31", "33"}:
+            require_value(self.sequence_expiry_date(), _("e-NCF Sequence Expiry Date"))
+
+        if self.invoice.mseller_ecf_type == "31":
+            require_value(self.customer_tax_id(), _("Customer RNC"))
+
     def id_doc(self) -> dict:
         data = {
             "TipoeCF": self.invoice.mseller_ecf_type,
             "eNCF": self.invoice.mseller_ecf_ncf,
-            "IndicadorMontoGravado": self.invoice.get("mseller_ecf_taxable_amount_indicator")
-            or self.settings.default_taxable_amount_indicator
-            or "0",
-            "TipoIngresos": self.invoice.get("mseller_ecf_income_type") or self.settings.default_income_type,
-            "TipoPago": self.invoice.get("mseller_ecf_payment_type") or self.default_payment_type(),
-            "TotalPaginas": 1,
         }
 
-        sequence_expiry = self.invoice.get("mseller_ecf_sequence_expiry_date") or self.settings.sequence_expiry_date
-        if sequence_expiry:
+        sequence_expiry = self.sequence_expiry_date()
+        if self.invoice.mseller_ecf_type in {"31", "33"} and sequence_expiry:
             data["FechaVencimientoSecuencia"] = date_dmy(sequence_expiry)
+
+        deferred_submission_indicator = (
+            self.invoice.get("mseller_ecf_deferred_submission_indicator")
+            or self.settings.default_deferred_submission_indicator
+        )
+        if deferred_submission_indicator:
+            data["IndicadorEnvioDiferido"] = deferred_submission_indicator
+
+        data.update(
+            {
+                "IndicadorMontoGravado": self.invoice.get("mseller_ecf_taxable_amount_indicator")
+                or self.settings.default_taxable_amount_indicator
+                or "0",
+                "TipoIngresos": self.invoice.get("mseller_ecf_income_type") or self.settings.default_income_type,
+                "TipoPago": self.invoice.get("mseller_ecf_payment_type") or self.default_payment_type(),
+            }
+        )
 
         due_date = self.invoice.get("due_date")
         if due_date and data["TipoPago"] != "1":
             data["FechaLimitePago"] = date_dmy(due_date)
-
-        if self.invoice.get("mseller_ecf_deferred_submission_indicator"):
-            data["IndicadorEnvioDiferido"] = self.invoice.mseller_ecf_deferred_submission_indicator
-        elif self.settings.default_deferred_submission_indicator:
-            data["IndicadorEnvioDiferido"] = self.settings.default_deferred_submission_indicator
 
         return {key: value for key, value in data.items() if value not in (None, "")}
 
@@ -96,11 +108,10 @@ class SalesInvoiceECFMapper:
 
     def comprador(self) -> dict:
         tax_id = self.customer_tax_id()
-        buyer = {
-            "RazonSocialComprador": self.invoice.customer_name,
-        }
+        buyer = {}
         if tax_id:
             buyer["RNCComprador"] = clean_tax_id(tax_id)
+        buyer["RazonSocialComprador"] = self.invoice.customer_name
         return buyer
 
     def items(self) -> list[dict]:
@@ -114,30 +125,39 @@ class SalesInvoiceECFMapper:
                 "CantidadItem": money(item.qty),
                 "UnidadMedida": item.get("uom") and self.unit_code(item.uom),
                 "PrecioUnitarioItem": money(item.rate),
-                "MontoItem": money(item.net_amount),
             }
 
             if item.discount_amount:
                 row["DescuentoMonto"] = money(item.discount_amount * item.qty)
 
+            row["MontoItem"] = money(item.net_amount)
             rows.append({key: value for key, value in row.items() if value not in (None, "")})
         return rows
 
     def totales(self) -> dict:
-        totals = {
-            "MontoGravadoTotal": money(self.invoice.net_total),
-            "MontoExento": money(self.exempt_total()),
-            "TotalITBIS": money(self.invoice.total_taxes_and_charges),
-            "MontoTotal": money(self.invoice.grand_total),
-            "MontoNoFacturable": money(self.invoice.get("total_advance") or 0),
-        }
-
         tax_rate = self.primary_itbis_rate()
         amount_field, rate_field, tax_field = ITBIS_RATE_TO_FIELD.get(tax_rate, ITBIS_RATE_TO_FIELD[18])
         taxable_total = money(self.invoice.net_total - self.exempt_total())
-        totals[amount_field] = taxable_total
-        totals[rate_field] = tax_rate
-        totals[tax_field] = money(self.invoice.total_taxes_and_charges)
+        exempt_total = money(self.exempt_total())
+        tax_total = money(self.invoice.total_taxes_and_charges)
+        totals = {}
+
+        if taxable_total or tax_total:
+            totals["MontoGravadoTotal"] = taxable_total
+            totals[amount_field] = taxable_total
+
+        if exempt_total:
+            totals["MontoExento"] = exempt_total
+
+        if taxable_total or tax_total:
+            totals[rate_field] = tax_rate
+            totals["TotalITBIS"] = tax_total
+            totals[tax_field] = tax_total
+
+        totals["MontoTotal"] = money(self.invoice.grand_total)
+
+        if self.invoice.get("total_advance"):
+            totals["MontoNoFacturable"] = money(self.invoice.total_advance)
 
         return {key: value for key, value in totals.items() if value not in (None, "")}
 
@@ -159,6 +179,12 @@ class SalesInvoiceECFMapper:
                 }
             ]
         }
+
+    def should_include_pagination(self) -> bool:
+        return False
+
+    def sequence_expiry_date(self):
+        return self.invoice.get("mseller_ecf_sequence_expiry_date") or self.settings.sequence_expiry_date
 
     def default_payment_type(self) -> str:
         if self.invoice.outstanding_amount and self.invoice.outstanding_amount > 0:
