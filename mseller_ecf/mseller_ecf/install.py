@@ -3,10 +3,10 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 
 def after_install():
-    create_sales_invoice_custom_fields()
+    create_custom_fields_for_integration()
 
 
-def create_sales_invoice_custom_fields():
+def create_custom_fields_for_integration():
     fields = {
         "Customer": get_party_custom_fields(),
         "Supplier": get_supplier_custom_fields(),
@@ -200,6 +200,10 @@ def create_sales_invoice_custom_fields():
 
     create_custom_fields(fields, update=True)
     frappe.db.commit()
+
+
+def create_sales_invoice_custom_fields():
+    create_custom_fields_for_integration()
 
 
 def get_party_custom_fields():

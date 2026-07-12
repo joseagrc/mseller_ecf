@@ -36,7 +36,7 @@ scheduler_events = {
 fixtures = [
     {
         "dt": "Custom Field",
-        "filters": [["name", "like", "Sales Invoice-mseller_ecf_%"]],
+        "filters": [["name", "like", "%-mseller_ecf_%"]],
     },
     {
         "dt": "Property Setter",
@@ -45,7 +45,7 @@ fixtures = [
 ]
 
 after_install = "mseller_ecf.mseller_ecf.install.after_install"
-after_migrate = "mseller_ecf.mseller_ecf.install.create_sales_invoice_custom_fields"
+after_migrate = "mseller_ecf.mseller_ecf.install.create_custom_fields_for_integration"
 
 doctype_js = {
     "Sales Invoice": "public/js/sales_invoice.js",

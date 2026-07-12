@@ -62,7 +62,6 @@ class MSellerECFClient:
         if response.get("refreshToken"):
             self.settings.db_set("refresh_token", response.get("refreshToken"), update_modified=False)
 
-        frappe.db.commit()
         return id_token
 
     def send_document(self, payload: dict[str, Any]) -> dict[str, Any]:
