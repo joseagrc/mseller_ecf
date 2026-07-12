@@ -16,6 +16,10 @@ def assign_ecf_if_missing(invoice):
     if not settings.enabled:
         return
 
+    default_type, default_sequence = get_invoice_party_defaults(invoice)
+    if not invoice.get("mseller_ecf_type"):
+        invoice.mseller_ecf_type = default_type or get_sequence_ecf_type(default_sequence)
+
     if not invoice.get("mseller_ecf_type"):
         if settings.require_ecf_fields_on_submit:
             frappe.throw(_("e-CF Type is required before submitting this Sales Invoice."))
@@ -25,7 +29,12 @@ def assign_ecf_if_missing(invoice):
         sync_existing_ecf(invoice, settings.environment)
         return
 
-    sequence_name = get_active_sequence_name(invoice.company, settings.environment, invoice.mseller_ecf_type)
+    sequence_name = default_sequence
+    if sequence_name:
+        validate_default_sequence(sequence_name, invoice.company, settings.environment, invoice.mseller_ecf_type)
+    else:
+        sequence_name = get_active_sequence_name(invoice.company, settings.environment, invoice.mseller_ecf_type)
+
     if not sequence_name:
         if settings.require_ecf_fields_on_submit:
             frappe.throw(
@@ -41,6 +50,50 @@ def assign_ecf_if_missing(invoice):
     invoice.mseller_ecf_environment = settings.environment
     if expires_on and not invoice.get("mseller_ecf_sequence_expiry_date"):
         invoice.mseller_ecf_sequence_expiry_date = expires_on
+
+
+def get_invoice_party_defaults(invoice) -> tuple[str | None, str | None]:
+    if not invoice.get("customer"):
+        return None, None
+
+    defaults = frappe.db.get_value(
+        "Customer",
+        invoice.customer,
+        ["mseller_ecf_default_type", "mseller_ecf_default_sequence"],
+        as_dict=True,
+    )
+    if not defaults:
+        return None, None
+
+    return defaults.mseller_ecf_default_type, defaults.mseller_ecf_default_sequence
+
+
+def get_sequence_ecf_type(sequence_name: str | None) -> str | None:
+    if not sequence_name:
+        return None
+    return frappe.db.get_value("MSeller ECF Sequence", sequence_name, "ecf_type")
+
+
+def validate_default_sequence(sequence_name: str, company: str, environment: str, ecf_type: str):
+    sequence = frappe.db.get_value(
+        "MSeller ECF Sequence",
+        sequence_name,
+        ["company", "environment", "ecf_type"],
+        as_dict=True,
+    )
+    if not sequence:
+        frappe.throw(_("e-NCF sequence {0} was not found.").format(sequence_name))
+
+    if sequence.company != company:
+        frappe.throw(_("Default e-NCF sequence {0} does not belong to Company {1}.").format(sequence_name, company))
+
+    if sequence.environment != environment:
+        frappe.throw(
+            _("Default e-NCF sequence {0} does not belong to Environment {1}.").format(sequence_name, environment)
+        )
+
+    if sequence.ecf_type != ecf_type:
+        frappe.throw(_("Default e-NCF sequence {0} does not match e-CF Type {1}.").format(sequence_name, ecf_type))
 
 
 def get_active_sequence_name(company: str, environment: str, ecf_type: str) -> str | None:

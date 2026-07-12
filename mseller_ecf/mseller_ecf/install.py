@@ -8,6 +8,8 @@ def after_install():
 
 def create_sales_invoice_custom_fields():
     fields = {
+        "Customer": get_party_custom_fields(),
+        "Supplier": get_party_custom_fields(),
         "Sales Invoice": [
             {
                 "fieldname": "mseller_ecf_section",
@@ -167,3 +169,29 @@ def create_sales_invoice_custom_fields():
 
     create_custom_fields(fields, update=True)
     frappe.db.commit()
+
+
+def get_party_custom_fields():
+    return [
+        {
+            "fieldname": "mseller_ecf_section",
+            "label": "MSeller ECF",
+            "fieldtype": "Section Break",
+            "insert_after": "tax_id",
+            "collapsible": 1,
+        },
+        {
+            "fieldname": "mseller_ecf_default_type",
+            "label": "Default e-CF Type",
+            "fieldtype": "Select",
+            "insert_after": "mseller_ecf_section",
+            "options": "\n31\n32\n33\n34\n41\n43\n44\n45\n46\n47",
+        },
+        {
+            "fieldname": "mseller_ecf_default_sequence",
+            "label": "Default e-NCF Sequence",
+            "fieldtype": "Link",
+            "insert_after": "mseller_ecf_default_type",
+            "options": "MSeller ECF Sequence",
+        },
+    ]
